@@ -112,3 +112,12 @@ def clean_subset(rows) -> tuple[list, dict]:
         kept.append(row)
     stats["kept"] = len(kept)
     return kept, stats
+
+def clean_subset(data):
+    # TODO: implement real logic
+    return data
+
+def validate_example(example):
+    # TODO: implement validation
+    return True
+
