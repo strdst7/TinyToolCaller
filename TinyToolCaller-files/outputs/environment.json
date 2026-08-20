@@ -1,11 +1,17 @@
 {
-  "python": "3.14.5",
-  "platform": "macOS-15.6-arm64-arm-64bit",
+  "python": "3.12.13",
+  "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+  "machine": "x86_64",
+  "torch": "2.11.0+cu128",
+  "transformers": "5.15.0",
+  "trl": "1.10.0",
+  "peft": "0.20.0",
   "datasets": "5.0.1",
-  "transformers": "5.9.0",
-  "numpy": "2.4.6",
-  "scipy": "1.17.1",
-  "pandas": "3.0.3",
-  "cuda_available": false,
-  "note": "CPU-only analysis sandbox used for \u00a78.1/\u00a78.2 profiling and the 41-test suite. NOT the training GPU environment."
+  "bitsandbytes": "0.50.1",
+  "wandb": "0.28.2",
+  "huggingface_hub": "1.27.0",
+  "cuda_available": true,
+  "cuda_version": "12.8",
+  "gpu_name": "Tesla T4",
+  "gpu_total_gb": 14.6
 }
