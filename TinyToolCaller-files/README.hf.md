@@ -817,22 +817,7 @@ python scripts/statistical_analysis.py --mcnemar outputs/eval_predictions.jsonl
 
 **GSM8K.** The 2-point change on 50 examples is within sampling noise (95% CI half-width ≈ ±13 pp at p ≈ 0.5), so the experiment **cannot distinguish "no forgetting" from "moderate forgetting"** and must not be cited as evidence of retention either way.
 
-| Metric | Value |
-| --- | --- |
-| Accuracy (eval set) | **XX%** |
-| Confusion matrix | see ``outputs/mcnemar_results.json`` |
-| **Paired McNemar p‑value** | **p = 0.031* |
-
-
 # 19. Results Interpretation and Error Analysis
-
-Interpretation: The paired McNemar test yielded p =  p = 1.000. This indicates that the difference in error distributions between baseline and TinyToolCaller is statistically significant at the 5% level.
-
-Artifacts:
-
-Predictions: outputs/eval_predictions.jsonl
-
-Statistical analysis: outputs/mcnemar_results.json
 
 The three metrics decompose the failure surface into bands that call for different engineering responses.
 
