@@ -190,7 +190,7 @@ def main() -> int:
         # --- 13-14. merge & publish ---------------------------------------- #
         train.save_and_publish(trainer, tokenizer, CONFIG, push=not args.no_push)
 
-    print("\nDone. See README §16-§21 before quoting results, and §8.1 for the "
+    print("\nDone. See README §16-§21 before quoting results
           "tool-distribution profile that still needs filling in.")
     return 0
 
