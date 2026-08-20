@@ -1,0 +1,19 @@
+# Core fine-tuning stack (QLoRA / PEFT / TRL)
+torch
+transformers
+datasets
+peft
+trl
+accelerate
+bitsandbytes
+wandb
+huggingface_hub
+
+# Evaluation + §8.1 / §8.2 profiling + §18 statistics
+numpy
+scipy
+pandas
+jsonschema
+
+# Development / testing
+pytest
