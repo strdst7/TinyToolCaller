@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Training artifacts (large / regenerated)
+outputs/
+checkpoints/
+*.safetensors
+*.bin
+
+# Experiment tracking
+wandb/
+*.wandb
+
+# Local env
+.env
