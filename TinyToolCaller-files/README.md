@@ -549,12 +549,17 @@ python scripts/capture_environment.py --save outputs/environment.json
 | `numpy` / `scipy` / `pandas` | 2.4.6 / 1.17.1 / 3.0.3 |
 | CUDA available | No (CPU-only analysis) |
 | **Training environment** (GPU run for §16–§17 results) | |
-| **GPU** model / VRAM | **TBD** — record from the actual training run (`scripts/capture_environment.py`) |
+| **GPU** model / VRAM | Tesla T4 (14.6 GB) |
+| Python | 3.12.13 |
+| Platform | Linux-6.6.122+-x86_64-with-glibc2.35 |
+| CUDA | 12.8 |
+| PyTorch / Transformers / TRL / PEFT / bitsandbytes | 2.11.0+cu128 / 5.15.0 / 1.10.0 / 0.20.0 / 0.50.1 |
+| `datasets` version (shuffle RNG — affects §8.1) | 5.0.1 |
+| wandb / huggingface_hub | 0.28.2 / 1.27.0 |
 | **Training wall-clock time** | **TBD** — record from the W&B run |
 | **Peak GPU memory** | **TBD** — record from the W&B run |
-| **PyTorch / TRL / PEFT / bitsandbytes** | **TBD** — record from the training GPU |
 
-> The analysis environment (profiling, statistics, tests) is fully captured above. The training-GPU fields remain TBD until the run artifacts are committed — they are recorded by `scripts/capture_environment.py` at train time, not estimated here.
+> The analysis environment (profiling, statistics, tests) and the training-GPU environment are both captured above. Wall-clock time and peak GPU memory remain TBD until the W&B run URL is committed.
 
 `scripts/capture_environment.py` records Python, platform, GPU name/VRAM, CUDA availability/version, and the seven library versions automatically; CPU/RAM/storage/OS are filled manually alongside it. The JSON it writes (`environment.json`) is committed with the run outputs (§29).
 
