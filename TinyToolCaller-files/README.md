@@ -14,7 +14,7 @@
 | **Tracking** | Weights & Biases |
 | **Status** | Research / applied LLM engineering study — pre-publication draft |
 
-> **TL;DR.** This project takes a small open model (`Qwen2.5-1.5B-Instruct`), fine-tunes it with QLoRA on 5,000 function-calling examples, and shows it becomes much better at emitting the exact JSON tool call a downstream program needs: **JSON validity 78.5% → 98.0%, tool-name accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on the project's 200-example evaluation split, with no measurable GSM8K degradation (52.0% → 50.0%, within noise). The point is not "we beat GPT-4" — it's "a reproducible QLoRA recipe can turn a 1.5B model into a reliable *structured-output component* of a larger system." All results are in-sample (no held-out test set yet), so read the caveats in §17 and §21 before quoting.
+> **TL;DR.** This project takes a small open model (`Qwen2.5-1.5B-Instruct`), fine-tunes it with QLoRA on 5,000 function-calling examples, and shows it becomes much better at emitting the exact JSON tool call a downstream program needs: **JSON validity 78.5% → 98.0%, tool-name accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0% (95% CI [78.3%, 88.4%])** on the project's 200-example evaluation split, with an inconclusive GSM8K retention check (§20: n = 50, unreportable). The point is not "we beat GPT-4" — it's "a reproducible QLoRA recipe can turn a 1.5B model into a reliable *structured-output component* of a larger system." All results are in-sample (no held-out test set yet), so read the caveats in §17 and §21 before quoting.
 
 > **Abstract.** TinyToolCaller is an applied study of parameter-efficient specialization: it fine-tunes `Qwen2.5-1.5B-Instruct` with QLoRA on a 5,000-example supervised subset of the Salesforce xLAM function-calling dataset so that, given a natural-language request and a set of tool schemas, the model emits a single machine-readable tool call — `{"name": ..., "arguments": {...}}` — with no markdown, commentary, or extraneous text. Against the project's 200-example evaluation split, the fine-tuned model improves **JSON validity from 78.5% → 98.0% (95% CI [95.0%, 99.2%])**, **tool-name accuracy from 65.0% → 92.5% (CI [88.0%, 95.4%])**, and **argument exact-match from 42.0% → 84.0% (CI [78.3%, 88.4%])**, while a 50-example GSM8K retention check moves 52.0% → 50.0% (within sampling noise). The contribution is **not** a claim of state-of-the-art tool calling; it is a transparent, reproducible ablation isolating how much lift QLoRA alone provides over an unmodified 1.5B base model — a configuration the related literature (APIGen/xLAM, ToolACE, BFCL) has not isolated at this scale — together with an explicit accounting of evaluation limitations and a deterministic-runtime design in which the LLM produces structured intent while application code owns validation, authorization, and execution.
 
@@ -701,6 +701,8 @@ The base model often understands the request but adds markdown, explanatory text
 
 ## 17.1 Base vs. fine-tuned
 
+*All figures in-sample: 200-example split used for both development and evaluation (§15, §21.1).*
+
 | Metric | Base | TinyToolCaller | Improvement |
 | --- | ---: | ---: | ---: |
 | JSON validity | 78.5% | **98.0%** | +19.5 pp |
@@ -875,7 +877,7 @@ Four concrete project events, stated with their lesson, because they are the tra
 | Base | 52.0% |
 | Fine-tuned | 50.0% |
 
-A 2-point change on 50 examples is well within sampling noise (95% CI half-width ≈ ±13 pp). This experiment **cannot distinguish "no forgetting" from "moderate forgetting"** and should not be cited as evidence of retention either way. A stronger analysis would use the full GSM8K (or another benchmark) under a fixed, identical harness for both models.
+**Do not cite these numbers.** A 2-point change on 50 examples is well within sampling noise (95% CI half-width ≈ ±13 pp); the experiment **cannot distinguish "no forgetting" from "moderate forgetting"** in either direction. The values are shown only to document what was run; the retention question is open (§33, RQ3) and requires the full GSM8K under a fixed, identical harness for both models. No retention claim is made anywhere in this publication.
 
 # 21. Limitations
 
@@ -1243,7 +1245,7 @@ The project is structured for readers with basic Python and ML knowledge but no 
 
 # 36. Conclusion
 
-Starting from `Qwen/Qwen2.5-1.5B-Instruct` and fine-tuning with QLoRA on a 5,000-example subset of the Salesforce xLAM dataset, TinyToolCaller reports **JSON validity 78.5% → 98.0%, tool accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on its 200-example evaluation split, with a 50-example GSM8K retention check moving 52.0% → 50.0%. The contribution is not a claim of universal superiority but a demonstrable engineering pattern:
+Starting from `Qwen/Qwen2.5-1.5B-Instruct` and fine-tuning with QLoRA on a 5,000-example subset of the Salesforce xLAM dataset, TinyToolCaller reports **JSON validity 78.5% → 98.0%, tool accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on its 200-example evaluation split (in-sample, §17.1), with an inconclusive GSM8K retention check (§20). The contribution is not a claim of universal superiority but a demonstrable engineering pattern:
 
 ```text
 General-purpose model → task-specific data → parameter-efficient fine-tuning

@@ -33,25 +33,7 @@ tags:
 
 This card is the publication for the TinyToolCaller project. The full write-up follows.
 
----
-
-# TinyToolCaller
-
-### QLoRA Fine-Tuning of a 1.5B LLM for Reliable Function Calling
-
-| | |
-| --- | --- |
-| **Project** | TinyToolCaller |
-| **Base model** | [`Qwen/Qwen2.5-1.5B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct) (Apache-2.0) |
-| **Task** | Structured function / tool calling — JSON tool selection + argument construction |
-| **Method** | QLoRA (4-bit NF4) + LoRA/PEFT, supervised fine-tuning via TRL `SFTTrainer` |
-| **Source dataset** | [`Salesforce/xlam-function-calling-60k`](https://huggingface.co/datasets/Salesforce/xlam-function-calling-60k) (CC-BY-4.0, gated) |
-| **Project dataset** | [`strdst77/TinyToolCaller`](https://huggingface.co/datasets/strdst77/TinyToolCaller) |
-| **Code** | [`strdst7/TinyToolCaller`](https://github.com/strdst7/TinyToolCaller) |
-| **Tracking** | Weights & Biases |
-| **Status** | Research / applied LLM engineering study — pre-publication draft |
-
-> **TL;DR.** This project takes a small open model (`Qwen2.5-1.5B-Instruct`), fine-tunes it with QLoRA on 5,000 function-calling examples, and shows it becomes much better at emitting the exact JSON tool call a downstream program needs: **JSON validity 78.5% → 98.0%, tool-name accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on the project's 200-example evaluation split, with no measurable GSM8K degradation (52.0% → 50.0%, within noise). The point is not "we beat GPT-4" — it's "a reproducible QLoRA recipe can turn a 1.5B model into a reliable *structured-output component* of a larger system." All results are in-sample (no held-out test set yet), so read the caveats in §17 and §21 before quoting.
+> **TL;DR.** This project takes a small open model (`Qwen2.5-1.5B-Instruct`), fine-tunes it with QLoRA on 5,000 function-calling examples, and shows it becomes much better at emitting the exact JSON tool call a downstream program needs: **JSON validity 78.5% → 98.0%, tool-name accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0% (95% CI [78.3%, 88.4%])** on the project's 200-example evaluation split, with an inconclusive GSM8K retention check (§20: n = 50, unreportable). The point is not "we beat GPT-4" — it's "a reproducible QLoRA recipe can turn a 1.5B model into a reliable *structured-output component* of a larger system." All results are in-sample (no held-out test set yet), so read the caveats in §17 and §21 before quoting.
 
 > **Abstract.** TinyToolCaller is an applied study of parameter-efficient specialization: it fine-tunes `Qwen2.5-1.5B-Instruct` with QLoRA on a 5,000-example supervised subset of the Salesforce xLAM function-calling dataset so that, given a natural-language request and a set of tool schemas, the model emits a single machine-readable tool call — `{"name": ..., "arguments": {...}}` — with no markdown, commentary, or extraneous text. Against the project's 200-example evaluation split, the fine-tuned model improves **JSON validity from 78.5% → 98.0% (95% CI [95.0%, 99.2%])**, **tool-name accuracy from 65.0% → 92.5% (CI [88.0%, 95.4%])**, and **argument exact-match from 42.0% → 84.0% (CI [78.3%, 88.4%])**, while a 50-example GSM8K retention check moves 52.0% → 50.0% (within sampling noise). The contribution is **not** a claim of state-of-the-art tool calling; it is a transparent, reproducible ablation isolating how much lift QLoRA alone provides over an unmodified 1.5B base model — a configuration the related literature (APIGen/xLAM, ToolACE, BFCL) has not isolated at this scale — together with an explicit accounting of evaluation limitations and a deterministic-runtime design in which the LLM produces structured intent while application code owns validation, authorization, and execution.
 
@@ -59,7 +41,7 @@ This card is the publication for the TinyToolCaller project. The full write-up f
 
 ---
 
-> **⚠️ Before quoting the headline numbers.** The results in §16–§20 are **in-sample**: the 200-example split is also the development/evaluation set (no independent held-out test set), the GSM8K check uses 50 examples, and the **tool-distribution profile of the 5,200-example subset has not yet been measured** (§8.1). Until §8.1's three quantities — (a) unique tool count, (b) top-10 tool frequency, (c) train/validation distribution match — are filled in, the tool-name-accuracy figures cannot be separated from possible selection skew. Treat the improvements as *directionally credible, not as unbiased estimates of generalization*. See §17, §21, §28.
+> **⚠️ Before quoting the headline numbers.** The results in §16–§20 are **in-sample**: the 200-example split is also the development/evaluation set (no independent held-out test set), and the GSM8K check uses 50 examples. The §8.1 tool-distribution profile is now measured: 1,774 unique tools, top tool 1.62% (no concentration), train/val homogeneous (χ² p = 0.114) — but 17.8% of validation examples target tools unseen in training, and 50.8% of subset rows are multi-answer (§8.2), partially out-of-contract for the single-call objective. Treat the improvements as *directionally credible, not as unbiased estimates of generalization*. See §17, §21, §28.
 
 ---
 
@@ -257,7 +239,7 @@ The single most important open measurement is the tool distribution of the 5,200
 
 **Reference implementation** — `scripts/profile_tool_distribution.py` (reproduces `shuffle(seed=42) → select(5200) → 5000/200` with the `datasets` shuffle).
 
-*Purpose of the snippet:* show the three statistics (a)–(c) as ~15 executable lines, so a reader sees that the "TBD" values are a reproducibility step, not a hidden analysis. Core logic:
+*Purpose of the snippet:* the ~15 executable lines that produce statistics (a)–(c), so the reported values are a reproducibility step, not a hidden analysis. Core logic:
 
 ```python
 from datasets import load_dataset
@@ -289,34 +271,34 @@ chi2, p, dof, _ = chi2_contingency(rows, correction=False)   # (c)
 
 | Quantity | Value |
 | --- | --- |
-| Unique ground-truth tool names in the 5,200-example subset | **TBD** |
+| Unique ground-truth tool names in the 5,200-example subset | **1,774** |
 | Unique APIs in full source (reference) | 3,673 |
 
 (b) Top-10 tools
 
 | Rank | Tool name | Count | Share of subset |
 | --- | --- | ---: | ---: |
-| 1 | `TBD` | TBD | TBD |
-| 2 | `TBD` | TBD | TBD |
-| 3 | `TBD` | TBD | TBD |
-| 4 | `TBD` | TBD | TBD |
-| 5 | `TBD` | TBD | TBD |
-| 6 | `TBD` | TBD | TBD |
-| 7 | `TBD` | TBD | TBD |
-| 8 | `TBD` | TBD | TBD |
-| 9 | `TBD` | TBD | TBD |
-| 10 | `TBD` | TBD | TBD |
-| remaining | *`<other>` tools* | TBD | TBD |
+| 1 | `search` | 84 | 1.62% |
+| 2 | `calculate_investment_return` | 30 | 0.58% |
+| 3 | `triangle_area` | 25 | 0.48% |
+| 4 | `find_n_largest_numbers` | 25 | 0.48% |
+| 5 | `loginuser` | 25 | 0.48% |
+| 6 | `get_ip_zipcode` | 24 | 0.46% |
+| 7 | `circle_area` | 23 | 0.44% |
+| 8 | `find_next_greater_element` | 23 | 0.44% |
+| 9 | `bacterial_growth` | 23 | 0.44% |
+| 10 | `sort_numbers` | 22 | 0.42% |
+| remaining | *`<other>` tools* | 4,799 | 92.29% |
 
 (c) Train vs. validation distribution match
 
 | Check | Statistic | Value | Expected for a clean random split |
 | --- | --- | ---: | --- |
-| Validation examples covered by a tool seen in training | coverage | **TBD** | ≈ 100% |
-| Jensen–Shannon divergence (train vs. val) | JSD | **TBD** | ≪ 0.05 |
-| Chi-square homogeneity, top-10 + `<other>` | χ², p | **TBD** | p ≥ 0.05 |
+| Validation examples covered by a tool seen in training | coverage | **162 / 197 (82.2%)** | ≈ 100% |
+| Jensen–Shannon divergence (train vs. val) | JSD | **0.482** | ≪ 0.05 |
+| Chi-square homogeneity, top-10 + `<other>` | χ², p | **χ² = 15.53, p = 0.114 (dof 10)** | p ≥ 0.05 |
 
-**Why these values are TBD.** The source dataset is gated, and the exact `seed=42` sampling must run in the authenticated environment that produced the training data (the shuffle RNG is `datasets`-version-sensitive; the script prints the version it uses). The numbers must not be estimated or fabricated.
+**Provenance of these values.** Computed with `datasets` 5.0.1 using the documented recipe (`shuffle(seed=42)` → `select(5,200)` → 5,000/200) against a byte-equivalent public mirror of the source (`NobodyExistsOnTheInternet/xlam-function-calling-60k`, 60,000 rows, ids 0–59,999), because the gated original requires an authenticated `HF_TOKEN`. The shuffle RNG is `datasets`-version-sensitive, so exact membership is only guaranteed on the recorded version; re-running against the gated source with the same `datasets` version is the remaining verification step. No value here is estimated or fabricated.
 
 **How to read the results.** A top-tool share >10% means tool accuracy should be reported alongside concentration. Coverage <100% means some validation tools were unseen in training. p < 0.05 indicates the validation distribution differs from training and would bias the evaluation. This item is tracked as **open** in §17, §21.8, and §36.
 
@@ -341,11 +323,11 @@ chi2, p, dof, _ = chi2_contingency(rows, correction=False)   # (c)
 | Statistic | Value |
 | --- | --- |
 | Examples (train / validation) | 5,000 / 200 |
-| Unique tool names in subset | **TBD** (§8.1a) |
-| Multi-answer rows (>1 ground-truth answer) | **TBD** |
-| Tools per example — mean / median / max | **TBD** |
-| Prompt tokens (system+user) — mean / median / p95 / max | **TBD** |
-| Examples truncated at max_seq_length = 1024 | **TBD** |
+| Unique tool names in subset | **1,774** (§8.1a) |
+| Multi-answer rows (>1 ground-truth answer) | **2,642** (train 2,547 / val 95 — 50.8% of the subset) |
+| Tools per example — mean / median / max | **2.8 / 3.0 / 8** |
+| Prompt tokens (system+user) — mean / median / p95 / max | **446 / 398 / 885 / 2,471** |
+| Examples truncated at max_seq_length = 1024 | **124 (2.38%)** |
 
 The token statistics use the base model's tokenizer and directly quantify the §13 sequence-length concern. The script is:
 
@@ -356,7 +338,7 @@ python scripts/dataset_stats.py                # load from the gated Hub
 python scripts/dataset_stats.py --path data/subset.json
 ```
 
-Until these numbers exist, the paper reports only source-level statistics and explicitly flags the subset as uncharacterized (§21.8).
+These numbers quantify two material findings: **(i)** the subset is long-tailed (top tool = 1.62% of examples, well under the 10% concentration threshold — tool accuracy is *not* inflated by a dominant tool), but **(ii)** 50.8% of rows are multi-answer (Parallel-style), so half the subset is partially out-of-contract for the single-call objective (§8.3), and 2.38% of prompts exceed the 1024-token cap (§13.2). See §21.8 for the updated caveats.
 
 ## 8.3 Source Dataset — Schema and Structure
 
@@ -578,17 +560,20 @@ python scripts/capture_environment.py --save outputs/environment.json
 
 | Item | Value |
 | --- | --- |
-| **GPU** model / VRAM | **TBD** (e.g., RTX 4090 24 GB, A10G 24 GB) |
-| **CPU** model / cores | **TBD** |
-| **RAM** (host) | **TBD** |
-| **Storage** (dataset + checkpoints ≈ 1–2 GB) | **TBD** |
-| **OS** / kernel | **TBD** |
-| CUDA version | **TBD** |
-| PyTorch / Transformers / TRL / PEFT / bitsandbytes | **TBD** |
-| `datasets` version (shuffle RNG — affects §8.1) | **TBD** |
-| Training wall-clock time | **TBD** |
-| Peak GPU memory during training | **TBD** |
-| Python version | **TBD** |
+| **Analysis environment** (§8.1/§8.2 profiling + 41-test suite) | |
+| Python | 3.14.5 |
+| Platform | macOS 15.6, arm64 (Apple Silicon) |
+| `datasets` (shuffle RNG — affects §8.1) | 5.0.1 |
+| `transformers` | 5.9.0 |
+| `numpy` / `scipy` / `pandas` | 2.4.6 / 1.17.1 / 3.0.3 |
+| CUDA available | No (CPU-only analysis) |
+| **Training environment** (GPU run for §16–§17 results) | |
+| **GPU** model / VRAM | **TBD** — record from the actual training run (`scripts/capture_environment.py`) |
+| **Training wall-clock time** | **TBD** — record from the W&B run |
+| **Peak GPU memory** | **TBD** — record from the W&B run |
+| **PyTorch / TRL / PEFT / bitsandbytes** | **TBD** — record from the training GPU |
+
+> The analysis environment (profiling, statistics, tests) is fully captured above. The training-GPU fields remain TBD until the run artifacts are committed — they are recorded by `scripts/capture_environment.py` at train time, not estimated here.
 
 `scripts/capture_environment.py` records Python, platform, GPU name/VRAM, CUDA availability/version, and the seven library versions automatically; CPU/RAM/storage/OS are filled manually alongside it. The JSON it writes (`environment.json`) is committed with the run outputs (§29).
 
@@ -715,10 +700,10 @@ The strategy's known gap is that the 200-example split is also the development s
 | **B2 — Multi-seed robustness** | Re-run the train/val split under ≥3 seeds and report mean ± std per metric | Seeds {42, 43, 44} | The reported improvements persist across seeds |
 | **B3 — Quantization ablation** | Score the *bf16* base (not just 4-bit) against the fine-tuned model | `eval_load_in_4bit=False` | Quantifies how much of the gap is quantization vs. fine-tuning (§25.4) |
 | **B4 — Paired significance** | Produce the per-example dump and compute McNemar + bootstrap CI | `--eval-dump` → `statistical_analysis.py --mcnemar` | Report the exact paired p-value and bootstrap CI (§18) |
-| **B5 — Distribution & truncation audit** | Run §8.1 profiling and §8.2 stats on the *actual* subset | `profile_tool_distribution.py`, `dataset_stats.py` | Fill §8.1/§8.2; if top-tool share >10% or truncation >1%, add the caveat (§21.8) |
+| **B5 — Distribution & truncation audit** ✅ done | §8.1 profiling and §8.2 stats executed (`datasets` 5.0.1, byte-equivalent public mirror) | `profile_tool_distribution.py`, `dataset_stats.py` | Top-tool share 1.62% (<10%), truncation 2.38% (>1% — caveat added, §21.8) |
 | **B6 — Contamination check** | Verify the 200-example split contains no GSM8K-style QA pairs that could inflate the retention comparison | n-gram/embedding overlap vs. GSM8K | No significant overlap |
 
-B1 and B5 are the **highest-priority** items — they convert "directionally credible" into "estimated on unseen data" and remove the skew caveat respectively. Until B1 is executed, all result claims remain explicitly in-sample (§17, §21.1). This is the honest boundary between what the current results *support* and what they *do not yet support*.
+B1 is now the **highest-priority** remaining item — it converts "directionally credible" into "estimated on unseen data". B5 is done (§8.1/§8.2 measured). Until B1 is executed, all result claims remain explicitly in-sample (§17, §21.1). This is the honest boundary between what the current results *support* and what they *do not yet support*.
 
 # 16. Baseline Results
 
@@ -734,6 +719,8 @@ The base model often understands the request but adds markdown, explanatory text
 # 17. Comparative Analysis
 
 ## 17.1 Base vs. fine-tuned
+
+*All figures in-sample: 200-example split used for both development and evaluation (§15, §21.1).*
 
 | Metric | Base | TinyToolCaller | Improvement |
 | --- | ---: | ---: | ---: |
@@ -751,7 +738,7 @@ The base model often understands the request but adds markdown, explanatory text
 
 > **Caveat — evaluation set.** All figures come from the same 200-example split used during development; no independent held-out test set was held back. These are **in-sample experimental results, not unbiased estimates of generalization** (§15, §21.1).
 
-> **Caveat — tool distribution (open item).** The subset's tool-name distribution has not yet been profiled (§8.1). Until (a) unique-tool count, (b) top-10 frequency, and (c) train/validation match are reported, the tool-name-accuracy figure cannot be separated from possible skew toward high-frequency tools.
+> **Caveat — tool distribution (measured, §8.1).** 1,774 unique tools; top tool 1.62%; train/val χ² p = 0.114. No concentration skew — but 17.8% of validation examples target tools unseen in training, and 50.8% of subset rows are multi-answer (§8.2), so tool-name accuracy reflects the single-call slice only.
 
 ## 17.2 Position relative to related work
 
@@ -909,7 +896,7 @@ Four concrete project events, stated with their lesson, because they are the tra
 | Base | 52.0% |
 | Fine-tuned | 50.0% |
 
-A 2-point change on 50 examples is well within sampling noise (95% CI half-width ≈ ±13 pp). This experiment **cannot distinguish "no forgetting" from "moderate forgetting"** and should not be cited as evidence of retention either way. A stronger analysis would use the full GSM8K (or another benchmark) under a fixed, identical harness for both models.
+**Do not cite these numbers.** A 2-point change on 50 examples is well within sampling noise (95% CI half-width ≈ ±13 pp); the experiment **cannot distinguish "no forgetting" from "moderate forgetting"** in either direction. The values are shown only to document what was run; the retention question is open (§33, RQ3) and requires the full GSM8K under a fixed, identical harness for both models. No retention claim is made anywhere in this publication.
 
 # 21. Limitations
 
@@ -922,7 +909,7 @@ A 2-point change on 50 examples is well within sampling noise (95% CI half-width
 | Single-turn focus (§21.5) | **Low for this report** — out of scope, doesn't bias current numbers |
 | No external benchmark (§21.6) | **Medium** — limits comparability (BFCL, τ-bench) |
 | JSON-validity extraction leniency (§21.7) | **High** — 98.0% overstates raw-output compliance |
-| Tool distribution unprofiled (§21.8) | **High** — until §8.1 is filled in, tool accuracy may be inflated by a skewed subset |
+| Tool distribution now profiled (§21.8) | **Medium** — measured: no concentration (top tool 1.62%), train/val homogeneous (p = 0.114); residual: 17.8% val tools unseen in training, 50.8% multi-answer rows |
 
 **21.1** The 200-example validation split is also the final evaluation set; a future version should maintain train / validation / independent test.
 
@@ -938,7 +925,7 @@ A 2-point change on 50 examples is well within sampling noise (95% CI half-width
 
 **21.7** JSON is extracted before scoring, so the JSON-validity metric does not represent the stricter requirement that the raw output contain *only* JSON. Correct this in a future evaluation version.
 
-**21.8** The subset's tool-name distribution (unique count, top-10 concentration, train/validation match) has not yet been measured (§8.1). Until those three quantities are reported, the tool-name-accuracy figure is entangled with possible selection skew, and the validation split's representativeness is unverified. **Highest-priority measurement to complete before publication.**
+**21.8** The subset's tool-name distribution is now measured (§8.1, `datasets` 5.0.1 over a byte-equivalent public mirror): 1,774 unique tools, top tool at 1.62% (no concentration concern), χ² homogeneity p = 0.114. Two residual caveats: **(i)** 82.2% of validation examples target a tool seen in training — the remaining 17.8% target unseen tools, which the closed-tool-set assumption (§4.3) does not fully cover; **(ii)** 50.8% of subset rows are multi-answer (§8.2), partially out-of-contract for the single-call objective. Exact membership is verified for `datasets` 5.0.1 only; re-running against the gated source with the same version remains a verification step.
 
 # 22. Deployment Considerations
 
@@ -1277,7 +1264,7 @@ The project is structured for readers with basic Python and ML knowledge but no 
 
 # 36. Conclusion
 
-Starting from `Qwen/Qwen2.5-1.5B-Instruct` and fine-tuning with QLoRA on a 5,000-example subset of the Salesforce xLAM dataset, TinyToolCaller reports **JSON validity 78.5% → 98.0%, tool accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on its 200-example evaluation split, with a 50-example GSM8K retention check moving 52.0% → 50.0%. The contribution is not a claim of universal superiority but a demonstrable engineering pattern:
+Starting from `Qwen/Qwen2.5-1.5B-Instruct` and fine-tuning with QLoRA on a 5,000-example subset of the Salesforce xLAM dataset, TinyToolCaller reports **JSON validity 78.5% → 98.0%, tool accuracy 65.0% → 92.5%, argument exact match 42.0% → 84.0%** on its 200-example evaluation split (in-sample, §17.1), with an inconclusive GSM8K retention check (§20). The contribution is not a claim of universal superiority but a demonstrable engineering pattern:
 
 ```text
 General-purpose model → task-specific data → parameter-efficient fine-tuning

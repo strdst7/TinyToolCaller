@@ -43,12 +43,13 @@ COVER = """\
     <tr><td>JSON validity (extraction-based)</td><td>78.5%</td><td><strong>98.0%</strong></td><td>+19.5 pp</td></tr>
     <tr><td>Tool-name accuracy</td><td>65.0%</td><td><strong>92.5%</strong></td><td>+27.5 pp</td></tr>
     <tr><td>Argument exact match</td><td>42.0%</td><td><strong>84.0%</strong></td><td>+42.0 pp</td></tr>
-    <tr><td>GSM8K (50-example retention check)</td><td>52.0%</td><td><strong>50.0%</strong></td><td>&minus;2.0 pp</td></tr>
+    <tr><td>GSM8K (50-example check &mdash; inconclusive, do not cite)</td><td>52.0%</td><td>50.0%</td><td>&plusmn;13 pp CI</td></tr>
   </table>
 
   <div class="cover-caveat"><strong>Read before quoting:</strong> results are in-sample (200-example
-  evaluation split, no independent test set; 50-example GSM8K) and the tool-distribution profile
-  (&sect;8.1) is not yet measured. See &sect;17&ndash;&sect;21.</div>
+  evaluation split, no independent test set). The &sect;8.1 tool-distribution profile is measured:
+  1,774 unique tools, top tool 1.62% (no concentration), train/val homogeneous &mdash; but 17.8% of
+  validation tools are unseen in training and 50.8% of subset rows are multi-answer. See &sect;17&ndash;&sect;21.</div>
 
   <div class="cover-links">
     <div><span>Code</span> github.com/strdst7/TinyToolCaller</div>
