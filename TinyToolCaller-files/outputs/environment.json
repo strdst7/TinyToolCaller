@@ -1,0 +1,11 @@
+{
+  "python": "3.14.5",
+  "platform": "macOS-15.6-arm64-arm-64bit",
+  "datasets": "5.0.1",
+  "transformers": "5.9.0",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pandas": "3.0.3",
+  "cuda_available": false,
+  "note": "CPU-only analysis sandbox used for \u00a78.1/\u00a78.2 profiling and the 41-test suite. NOT the training GPU environment."
+}
