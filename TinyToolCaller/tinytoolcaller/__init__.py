@@ -8,6 +8,7 @@ Package layout (mirrors the publication §13):
     model.py        Quantized model loading and LoRA attachment.
     metrics.py      Evaluation metrics and scorers.
     train.py        SFTTrainer wrapper and adapter/merge publication.
+    repair.py       One-shot JSON repair loop (publication §3.1, §22.1).
 
 Only `formatting`, `config`, and the dataclass part of `metrics` are safe to
 import in a CPU/CI environment without torch, trl, peft, or bitsandbytes; the

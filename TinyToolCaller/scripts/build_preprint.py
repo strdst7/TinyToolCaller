@@ -23,32 +23,32 @@ from weasyprint import HTML
 
 COVER = """\
 <div class="cover">
-  <div class="cover-meta">APPLIED LLM ENGINEERING STUDY &middot; PREPRINT &middot; {date}</div>
+  <div class="cover-meta">APPLIED LLM ENGINEERING STUDY &middot; EVIDENCE-LED PREPRINT &middot; {date}</div>
   <h1 class="cover-title">TinyToolCaller</h1>
-  <div class="cover-subtitle">QLoRA Fine-Tuning of a 1.5B LLM for Reliable Function Calling</div>
+  <div class="cover-subtitle">A QLoRA Study of a 1.5B Model for Structured Function Calling</div>
 
   <div class="cover-abstract">
-    <p>TinyToolCaller is an applied study of parameter-efficient specialization: it takes a
-    small open-weight instruction model, <code>Qwen2.5-1.5B-Instruct</code>, and fine-tunes it with
-    QLoRA on a 5,000-example supervised subset of the Salesforce xLAM function-calling dataset so
-    that, given a natural-language request and a set of tool schemas, the model emits a single,
-    machine-readable tool call &mdash; <code>{{"name": ..., "arguments": {{...}}}}</code> &mdash; with
-    no markdown, commentary, or extraneous text. The work&rsquo;s contribution is not a claim of
-    state-of-the-art tool calling; it is a transparent, reproducible ablation isolating how much
-    lift QLoRA alone provides over an unmodified 1.5B base model.</p>
+    <p>TinyToolCaller studies parameter-efficient specialization of
+    <code>Qwen2.5-1.5B-Instruct</code> for one narrow contract: map a request and candidate tool
+    schemas to a structured call. It applies QLoRA to 5,000 supervised examples from a
+    deterministic xLAM subset. The recorded numbers below are a development-set snapshot, not an
+    external benchmark or a claim of production reliability. The engineering contribution is an
+    inspectable pipeline and a deployment boundary in which deterministic software validates,
+    authorizes, and executes every proposed call.</p>
   </div>
 
   <table class="cover-results">
-    <tr><th>Metric</th><th>Base model</th><th>TinyToolCaller</th><th>Change</th></tr>
-    <tr><td>JSON validity (extraction-based)</td><td>78.5%</td><td><strong>98.0%</strong></td><td>+19.5 pp</td></tr>
+    <tr><th>Recorded development metric (n=200)</th><th>Base model</th><th>TinyToolCaller</th><th>Change</th></tr>
+    <tr><td>Extractable JSON object</td><td>78.5%</td><td><strong>98.0%</strong></td><td>+19.5 pp</td></tr>
     <tr><td>Tool-name accuracy</td><td>65.0%</td><td><strong>92.5%</strong></td><td>+27.5 pp</td></tr>
     <tr><td>Argument exact match</td><td>42.0%</td><td><strong>84.0%</strong></td><td>+42.0 pp</td></tr>
-    <tr><td>GSM8K (50-example retention check)</td><td>52.0%</td><td><strong>50.0%</strong></td><td>&minus;2.0 pp</td></tr>
+    <tr><td>Recorded GSM8K probe (n=50)</td><td>52.0%</td><td><strong>50.0%</strong></td><td>&minus;2.0 pp</td></tr>
   </table>
 
-  <div class="cover-caveat"><strong>Read before quoting:</strong> results are in-sample (200-example
-  evaluation split, no independent test set; 50-example GSM8K) and the tool-distribution profile
-  (&sect;8.1) is not yet measured. See &sect;17&ndash;&sect;21.</div>
+  <div class="cover-caveat"><strong>Read before quoting:</strong> the 200-row split was used during
+  development, JSON is scored after extraction rather than as raw-output purity — see the evidence
+  notice and limitations. Tool distribution is now profiled (§8: 1,774 unique tools, top 1.62%,
+  train/val χ² p=0.114).</div>
 
   <div class="cover-links">
     <div><span>Code</span> github.com/strdst7/TinyToolCaller</div>
@@ -114,6 +114,8 @@ table {
 th, td { border: 1px solid #cdd3da; padding: 4px 7px; text-align: left; vertical-align: top; }
 th { background: #eef1f5; color: #10243e; font-weight: bold; }
 tr:nth-child(even) td { background: #f8fafc; }
+.evidence-map { break-inside: auto; }
+.evidence-map tr { break-inside: avoid; }
 
 blockquote {
   margin: 0.8em 0; padding: 6px 12px; border-left: 4px solid #9db4cc;
@@ -140,6 +142,16 @@ def build_html(md_text: str, date: str) -> str:
         md_text,
         extensions=["tables", "fenced_code", "sane_lists", "attr_list"],
     )
+    showcase_start = "<h2>Showcase Evidence Map</h2>"
+    showcase_end = "<h2>1."
+    if showcase_start in body:
+        idx_start = body.index(showcase_start)
+        idx_end = body.index(showcase_end, idx_start + len(showcase_start))
+        before = body[:idx_start]
+        section = body[idx_start:idx_end]
+        after = body[idx_end:]
+        section = section.replace('<table>', '<table class="evidence-map">', 1)
+        body = before + section + after
     body = body.replace("\uFE0F", "")          # strip emoji variation selector
     body = body.replace("⚠️", "⚠")
     return (
