@@ -72,34 +72,34 @@
 
 | Requirement | Phase | Status |
 |---|---|---|
-| API-01 | Phase 1 | Pending |
-| API-02 | Phase 1 | Pending |
-| API-03 | Phase 1 | Pending |
-| API-04 | Phase 1 | Pending |
-| API-05 | Phase 2 | Pending |
-| API-06 | Phase 1 | Pending |
-| API-07 | Phase 1 | Pending |
-| VAL-01 | Phase 1 | Pending |
-| VAL-02 | Phase 1 | Pending |
-| VAL-03 | Phase 1 | Pending |
-| VAL-04 | Phase 2 | Pending |
-| VAL-05 | Phase 1 | Pending |
-| VAL-06 | Phase 2 | Pending |
-| DOCK-01 | Phase 3 | Pending |
-| DOCK-02 | Phase 3 | Pending |
-| DOCK-03 | Phase 3 | Pending |
-| DOCK-04 | Phase 3 | Pending |
-| DOCK-05 | Phase 3 | Pending |
-| CICD-01 | Phase 3 | Pending |
-| CICD-02 | Phase 3 | Pending |
-| CICD-03 | Phase 3 | Pending |
-| DOC-01 | Phase 4 | Pending |
-| DOC-02 | Phase 4 | Pending |
-| DOC-03 | Phase 4 | Pending |
-| DOC-04 | Phase 1 | Pending |
-| CLN-01 | Phase 1 | Pending |
-| CLN-02 | Phase 1 | Pending |
-| CLN-03 | Phase 4 | Pending |
+| API-01 | Phase 1 — Core Server + Validation Stack | Pending |
+| API-02 | Phase 1 — Core Server + Validation Stack | Pending |
+| API-03 | Phase 1 — Core Server + Validation Stack | Pending |
+| API-04 | Phase 1 — Core Server + Validation Stack | Pending |
+| API-05 | Phase 2 — Production Hardening | Pending |
+| API-06 | Phase 1 — Core Server + Validation Stack | Pending |
+| API-07 | Phase 1 — Core Server + Validation Stack | Pending |
+| VAL-01 | Phase 1 — Core Server + Validation Stack | Pending |
+| VAL-02 | Phase 1 — Core Server + Validation Stack | Pending |
+| VAL-03 | Phase 1 — Core Server + Validation Stack | Pending |
+| VAL-04 | Phase 2 — Production Hardening | Pending |
+| VAL-05 | Phase 1 — Core Server + Validation Stack | Pending |
+| VAL-06 | Phase 2 — Production Hardening | Pending |
+| DOCK-01 | Phase 3 — CI/CD + Docker | Pending |
+| DOCK-02 | Phase 3 — CI/CD + Docker | Pending |
+| DOCK-03 | Phase 3 — CI/CD + Docker | Pending |
+| DOCK-04 | Phase 3 — CI/CD + Docker | Pending |
+| DOCK-05 | Phase 3 — CI/CD + Docker | Pending |
+| CICD-01 | Phase 3 — CI/CD + Docker | Pending |
+| CICD-02 | Phase 3 — CI/CD + Docker | Pending |
+| CICD-03 | Phase 3 — CI/CD + Docker | Pending |
+| DOC-01 | Phase 4 — Documentation + Diagrams | Pending |
+| DOC-02 | Phase 4 — Documentation + Diagrams | Pending |
+| DOC-03 | Phase 4 — Documentation + Diagrams | Pending |
+| DOC-04 | Phase 1 — Core Server + Validation Stack | Pending |
+| CLN-01 | Phase 1 — Core Server + Validation Stack | Pending |
+| CLN-02 | Phase 1 — Core Server + Validation Stack | Pending |
+| CLN-03 | Phase 4 — Documentation + Diagrams | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
@@ -108,4 +108,4 @@
 
 ---
 *Requirements defined: 2026-08-21*
-*Last updated: 2026-08-21 after initial definition*
+*Last updated: 2026-08-22 after roadmap creation*
